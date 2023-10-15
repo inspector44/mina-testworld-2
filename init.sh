@@ -107,5 +107,5 @@ sudo systemctl enable mina
 sudo loginctl enable-linger
 
 # Show recent logs and follow new logs
-journalctl --user-unit mina -n 1000 -f
+journalctl  -u mina -n 1000 -f
 
