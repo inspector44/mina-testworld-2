@@ -86,7 +86,7 @@ StartLimitIntervalSec=60
 StartLimitBurst=3
 
 [Service]
-Environment="PEERS_LIST_URL=https://storage.googleapis.com/seed-lists/berkeley_seeds.txt"
+Environment="PEERS_LIST_URL=https://storage.googleapis.com/seed-lists/testworld-2-0_seeds.txt"
 Environment="LOG_LEVEL=Info"
 Environment="FILE_LOG_LEVEL=Debug"
 EnvironmentFile=%h/.mina-env
