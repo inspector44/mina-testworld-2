@@ -46,3 +46,10 @@ Run the init.sh script:
 ```
 
 During execution, the script will prompt you to input information sequentially. Find and enter the necessary values from the provided zip file.
+
+### 4️⃣ Step 4: Check the status
+Wait for 5 minutes. Then check the daemon by using below command.
+```bash
+mina client status
+```
+
