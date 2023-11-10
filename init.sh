@@ -102,10 +102,9 @@ EOL
 
 # Reload systemd, restart Mina service, enable it to start at boot, and enable user lingering
 sudo systemctl daemon-reload
-sudo systemctl restart mina
-sudo systemctl enable mina
-sudo loginctl enable-linger
+systemctl --user restart mina
+systemctl --user enable mina
+loginctl enable-linger
 
 # Show recent logs and follow new logs
 journalctl  -u mina -n 1000 -f
-
