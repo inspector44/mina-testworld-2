@@ -9,7 +9,7 @@ set -u # Treat unset variables as an error
 # File and directory paths
 KEYS_DIR=~/keys
 MINA_ENV_FILE=~/.mina-env
-MINA_SERVICE_FILE=/usr/lib/systemd/user/mina.service
+MINA_SERVICE_FILE=/etc/systemd/system/mina.service
 
 # APT Repository details
 REPO_URL="http://packages.o1test.net"
@@ -27,10 +27,11 @@ ensure_var() {
     local prompt_msg="$2"
 
     while true; do
-        read -p "$prompt_msg" "$var_name"
-        if [[ -z "${!var_name}" ]]; then
+        read -p "$prompt_msg" input
+        if [[ -z "$input" ]]; then
             echo "Input cannot be empty."
         else
+            eval "$var_name='$input'"
             break
         fi
     done
@@ -56,7 +57,7 @@ chmod 700 "$KEYS_DIR"
 ensure_var json_string "Enter the key json string: "
 ensure_var public_key "Enter public key: "
 ensure_var external_ip "Enter external IP: "
-ensure_var MINA_PRIVKEY_PASS "Enter MINA_PRIVKEY_PASS: " -s
+ensure_var MINA_PRIVKEY_PASS "Enter MINA_PRIVKEY_PASS: "
 
 # Write keys and permissions
 echo "$json_string" > "$KEYS_DIR/my-wallet"
@@ -71,7 +72,7 @@ cat <<EOL > "$MINA_ENV_FILE"
 MINA_PRIVKEY_PASS="$MINA_PRIVKEY_PASS"
 UPTIME_PRIVKEY_PASS="$MINA_PRIVKEY_PASS"
 MINA_LIBP2P_PASS="$MINA_PRIVKEY_PASS"
-EXTRA_FLAGS="--log-json --log-snark-work-gossip true --internal-tracing --insecure-rest-server --log-level Debug --file-log-level Debug --config-directory /root/.mina-config/ --external-ip $external_ip --itn-keys  f1F38+W3zLcc45fGZcAf9gsZ7o9Rh3ckqZQw6yOJiS4=,6GmWmMYv5oPwQd2xr6YArmU1YXYCAxQAxKH7aYnBdrk=,ZJDkF9EZlhcAU1jyvP3m9GbkhfYa0yPV+UdAqSamr1Q=,NW2Vis7S5G1B9g2l9cKh3shy9qkI1lvhid38763vZDU=,Cg/8l+JleVH8yNwXkoLawbfLHD93Do4KbttyBS7m9hQ= --itn-graphql-port 3089 --uptime-submitter-key  /root/keys/my-wallet --uptime-url https://block-producers-uptime-itn.minaprotocol.tools/v1/submit --metrics-port 10001 --enable-peer-exchange  true --libp2p-keypair /root/keys/keys --log-precomputed-blocks true --peer-list-url  https://storage.googleapis.com/seed-lists/testworld-2-0_seeds.txt --generate-genesis-proof  true --block-producer-key /root/keys/my-wallet --node-status-url https://nodestats-itn.minaprotocol.tools/submit/stats  --node-error-url https://nodestats-itn.minaprotocol.tools/submit/stats  --file-log-rotations 500"
+EXTRA_FLAGS="--log-json --log-snark-work-gossip true --internal-tracing --insecure-rest-server --log-level Debug --file-log-level Debug --config-directory /root/.mina-config/ --external-ip $external_ip --itn-keys f1F38+W3zLcc45fGZcAf9gsZ7o9Rh3ckqZQw6yOJiS4=,6GmWmMYv5oPwQd2xr6YArmU1YXYCAxQAxKH7aYnBdrk=,ZJDkF9EZlhcAU1jyvP3m9GbkhfYa0yPV+UdAqSamr1Q=,NW2Vis7S5G1B9g2l9cKh3shy9qkI1lvhid38763vZDU=,Cg/8l+JleVH8yNwXkoLawbfLHD93Do4KbttyBS7m9hQ= --itn-graphql-port 3089 --uptime-submitter-key /root/keys/my-wallet --uptime-url https://block-producers-uptime-itn.minaprotocol.tools/v1/submit --metrics-port 10001 --enable-peer-exchange true --libp2p-keypair /root/keys/keys --log-precomputed-blocks true --peer-list-url https://storage.googleapis.com/seed-lists/testworld-2-0_seeds.txt --generate-genesis-proof true --block-producer-key /root/keys/my-wallet --node-status-url https://nodestats-itn.minaprotocol.tools/submit/stats --node-error-url https://nodestats-itn.minaprotocol.tools/submit/stats --file-log-rotations 500"
 RAYON_NUM_THREADS=6
 EOL
 
@@ -89,7 +90,7 @@ StartLimitBurst=3
 Environment="PEERS_LIST_URL=https://storage.googleapis.com/seed-lists/testworld-2-0_seeds.txt"
 Environment="LOG_LEVEL=Info"
 Environment="FILE_LOG_LEVEL=Debug"
-EnvironmentFile=%h/.mina-env
+EnvironmentFile=$MINA_ENV_FILE
 Type=simple
 Restart=always
 RestartSec=30
@@ -97,14 +98,13 @@ ExecStart=/usr/local/bin/mina daemon \$EXTRA_FLAGS
 ExecStop=/usr/local/bin/mina client stop-daemon
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
 EOL
 
-# Reload systemd, restart Mina service, enable it to start at boot, and enable user lingering
+# Reload systemd, restart Mina service, enable it to start at boot
 sudo systemctl daemon-reload
-systemctl --user restart mina
-systemctl --user enable mina
-loginctl enable-linger
+sudo systemctl restart mina
+sudo systemctl enable mina
 
 # Show recent logs and follow new logs
-journalctl  -u mina -n 1000 -f
+journalctl -u mina -n 1000 -f
