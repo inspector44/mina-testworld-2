@@ -15,7 +15,7 @@ MINA_SERVICE_FILE=/usr/lib/systemd/user/mina.service
 REPO_URL="http://packages.o1test.net"
 REPO_DISTRO="focal"
 REPO_COMPONENT="rampup"
-MINA_PACKAGE="mina-berkeley=2.0.0rampup5-55b7818"
+MINA_PACKAGE="mina-berkeley=2.0.0rampup7"
 
 # -----------------------
 # Functions
